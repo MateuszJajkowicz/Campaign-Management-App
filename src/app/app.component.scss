@@ -1,0 +1,26 @@
+header {
+  background-color: #333;
+  color: #fff;
+  padding: 15px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 24px;
+}
+
+.balance {
+  font-size: 16px;
+}
+
+.app-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}

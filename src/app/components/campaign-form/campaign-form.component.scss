@@ -1,0 +1,31 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-right: auto;
+}
+
+form {
+  box-sizing: border-box;
+  max-width: 500px;
+  width: 100%;
+  padding: 20px;
+}
+
+mat-form-field {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.mat-prefix {
+  padding-left: 8px;
+}
+
+mat-error {
+  color: red;
+}
+
+.button-container button {
+  margin-left: 10px;
+}

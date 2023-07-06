@@ -1,0 +1,169 @@
+<div class="container">
+  <h1>{{ title }}</h1>
+  <div>
+    <mat-spinner
+      *ngIf="isCamapignLoading || isBalanceLoading"
+      color="accent"
+    ></mat-spinner>
+  </div>
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!errorMessage && !isCamapignLoading && !isBalanceLoading">
+    <form [formGroup]="campaignForm!" (ngSubmit)="onSubmit()">
+      <mat-form-field>
+        <span matPrefix class="mat-prefix">Campaign Name:</span>
+        <input
+          matInput
+          placeholder="Campaign Name"
+          formControlName="name"
+          required
+        />
+        <mat-error
+          *ngIf="
+            campaignForm?.get('name')?.invalid &&
+            campaignForm?.get('name')?.touched
+          "
+        >
+          Campaign Name is required.
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <span matPrefix class="mat-prefix">Keywords:</span>
+        <mat-chip-grid #chipGrid aria-label="Keywords selection">
+          <mat-chip-row
+            *ngFor="let keyword of selectedKeywords"
+            (removed)="remove(keyword)"
+          >
+            {{ keyword }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip-row>
+        </mat-chip-grid>
+        <input
+          placeholder="New Keywords"
+          #keywordInput
+          [formControl]="keywordCtrl"
+          [matAutocomplete]="auto"
+          [matChipInputFor]="chipGrid"
+          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+          (matChipInputTokenEnd)="add($event)"
+        />
+        <mat-autocomplete
+          #auto="matAutocomplete"
+          (optionSelected)="selected($event)"
+        >
+          <mat-option
+            *ngFor="let keyword of filteredKeywords | async"
+            [value]="keyword"
+          >
+            {{ keyword }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error
+          *ngIf="
+            campaignForm?.get('keywords')?.invalid &&
+            campaignForm?.get('keywords')?.touched
+          "
+        >
+          Keywords are required.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field>
+        <span matPrefix class="mat-prefix">Bid Amount:</span>
+        <input
+          matInput
+          type="number"
+          placeholder="Min amount"
+          formControlName="bidAmount"
+          required
+        />
+        <mat-error
+          *ngIf="
+            campaignForm?.get('bidAmount')?.invalid &&
+            campaignForm?.get('bidAmount')?.touched
+          "
+        >
+          Bid Amount is required.
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <span matPrefix class="mat-prefix">Campaign Fund:</span>
+        <input
+          matInput
+          type="number"
+          placeholder="Campaign Fund"
+          formControlName="campaignFund"
+          required
+        />
+        <mat-error
+          *ngIf="
+            campaignForm?.get('campaignFund')?.touched &&
+            !campaignForm?.get('campaignFund')?.invalid
+          "
+        >
+          Campaign Fund is required.
+        </mat-error>
+        <mat-error *ngIf="campaignForm?.get('campaignFund')?.invalid">
+          Campaign Fund is to big.
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <span matPrefix class="mat-prefix">Status:</span>
+        <mat-select placeholder="Status" formControlName="status" required>
+          <mat-option value="on">On</mat-option>
+          <mat-option value="off">Off</mat-option>
+        </mat-select>
+        <mat-error
+          *ngIf="
+            campaignForm?.get('status')?.invalid &&
+            campaignForm?.get('status')?.touched
+          "
+        >
+          Status is required.
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <span matPrefix class="mat-prefix">Town:</span>
+        <mat-select placeholder="Town" formControlName="town" required>
+          <mat-option *ngFor="let town of towns" [value]="town">{{
+            town
+          }}</mat-option>
+        </mat-select>
+        <mat-error
+          *ngIf="
+            campaignForm?.get('town')?.invalid &&
+            campaignForm?.get('town')?.touched
+          "
+        >
+          Town is required.
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field>
+        <span matPrefix class="mat-prefix">Radius:</span>
+        <input
+          matInput
+          type="number"
+          placeholder="In kilometers"
+          formControlName="radius"
+          required
+        />
+        <mat-error
+          *ngIf="
+            campaignForm?.get('radius')?.invalid &&
+            campaignForm?.get('radius')?.touched
+          "
+        >
+          Radius is required.
+        </mat-error>
+      </mat-form-field>
+      <div class="button-container">
+        <button mat-raised-button color="warn" (click)="cancel()">
+          Cancel
+        </button>
+        <button mat-raised-button color="accent" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
