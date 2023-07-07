@@ -137,16 +137,17 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
   }
 
   createForm(): void {
+    const maxCampaignFund = this.emeraldAccountBalance || 0;
     this.campaignForm = this.formBuilder.group({
       name: ['', Validators.required],
-      keywords: new FormControl([]),
+      keywords: new FormControl([], Validators.required),
       bidAmount: ['', [Validators.required, Validators.min(0)]],
       campaignFund: [
         '',
         [
           Validators.required,
           Validators.min(0),
-          Validators.max(this.emeraldAccountBalance),
+          Validators.max(maxCampaignFund),
         ],
       ],
       status: ['', Validators.required],
@@ -250,6 +251,7 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
     }
 
     const campaign: Campaign = this.campaignForm?.value;
+    // const campaign: Campaign = { ...this.campaignForm?.value };
     campaign.keywords = this.selectedKeywords;
 
     if (this.isEditMode) {

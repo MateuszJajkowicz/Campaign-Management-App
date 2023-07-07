@@ -1,29 +1,45 @@
-import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { EmeraldAccountService } from './services/emerald-account.service';
+import { of } from 'rxjs';
 
 describe('AppComponent', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [RouterTestingModule],
-    declarations: [AppComponent]
-}));
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let emeraldAccountService: EmeraldAccountService;
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        {
+          provide: EmeraldAccountService,
+          useValue: {
+            getEmeraldAccountBalance: jasmine
+              .createSpy('getEmeraldAccountBalance')
+              .and.returnValue(of(2000)),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    emeraldAccountService = TestBed.inject(EmeraldAccountService);
   });
 
-  it(`should have as title 'CRUD'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('CRUD');
+  it('should create the app component', () => {
+    expect(component).toBeTruthy();
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
+  it('should display the correct emerald account balance', () => {
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('CRUD app is running!');
+    const balanceElement: HTMLElement =
+      fixture.nativeElement.querySelector('.balance');
+
+    expect(balanceElement.textContent).toContain(
+      'Emerald Account Balance: 2000'
+    );
+    expect(emeraldAccountService.getEmeraldAccountBalance).toHaveBeenCalled();
   });
 });
