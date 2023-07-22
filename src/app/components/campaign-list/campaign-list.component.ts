@@ -4,18 +4,14 @@ import { Campaign } from 'src/app/models/campaign';
 import { CampaignService } from 'src/app/services/campaign.service';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
-import {
-  Observable,
-  Subscription,
-  catchError,
-  switchMap,
-} from 'rxjs';
+import { Observable, Subscription, catchError, switchMap } from 'rxjs';
 import { EMPTY } from 'rxjs';
 import { EmeraldAccountService } from 'src/app/services/emerald-account.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { getErrorMessage } from 'src/app/utils/getErrorMessage';
 
 @Component({
   selector: 'app-campaign-list',
@@ -96,8 +92,7 @@ export class CampaignListComponent implements OnInit, OnDestroy {
             this.updateEmeraldAccountBalance(campaign.campaignFund)
           ),
           catchError((error) => {
-            console.error('Error deleting campaign:', error);
-            this.errorMessage = 'Error deleting campaign. Please try again.';
+            this.errorMessage = getErrorMessage(error);
             return EMPTY;
           })
         )
@@ -121,10 +116,8 @@ export class CampaignListComponent implements OnInit, OnDestroy {
       .updateEmeraldAccountBalance(campaignFund)
       .pipe(
         catchError((error) => {
-          console.error('Error updating Emerald Account Balance:', error);
-          this.errorMessage =
-            'Error updating Emerald Account Balance. Please try again.';
-          throw error;
+          this.errorMessage = getErrorMessage(error);
+          return EMPTY;
         })
       );
   }

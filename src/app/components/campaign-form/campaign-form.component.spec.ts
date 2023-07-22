@@ -85,7 +85,6 @@ describe('CampaignFormComponent', () => {
     component.onSubmit();
     expect(component.campaignForm?.invalid).toBeTrue();
     expect(component.campaignForm?.get('name')?.invalid).toBeTrue();
-    expect(component.campaignForm?.get('keywords')?.invalid).toBeTrue();
     expect(component.campaignForm?.get('bidAmount')?.invalid).toBeTrue();
     expect(component.campaignForm?.get('campaignFund')?.invalid).toBeTrue();
     expect(component.campaignForm?.get('status')?.invalid).toBeTrue();

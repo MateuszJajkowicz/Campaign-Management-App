@@ -29,7 +29,9 @@ describe('CampaignService', () => {
     const campaignId = 100;
     campaignService.getCampaignById(campaignId).subscribe({
       error: (error: Error) => {
-        expect(error.message).toBe(`Campaign with ID ${campaignId} not found.`);
+        expect(error.message).toBe(
+          `Error getting campaign. Campaign with ID ${campaignId} not found.`
+        );
         done();
       },
     });
@@ -94,7 +96,7 @@ describe('CampaignService', () => {
     campaignService.updateCampaign(nonExistentCampaign).subscribe({
       error: (error: Error) => {
         expect(error.message).toBe(
-          `Campaign with ID ${nonExistentCampaign.id} not found.`
+          `Error updating campaign. Campaign with ID ${nonExistentCampaign.id} not found.`
         );
         done();
       },
@@ -118,7 +120,7 @@ describe('CampaignService', () => {
     campaignService.deleteCampaign(nonExistentCampaignId).subscribe({
       error: (error: Error | string) => {
         expect(error).toBe(
-          `Campaign with ID ${nonExistentCampaignId} not found.`
+          `Error deleting campaign. Campaign with ID ${nonExistentCampaignId} not found.`
         );
         done();
       },

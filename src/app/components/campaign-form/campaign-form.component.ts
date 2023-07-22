@@ -15,6 +15,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subscription, catchError, map, of, startWith } from 'rxjs';
 import { EMPTY } from 'rxjs';
@@ -34,12 +35,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
+import { MatChipsModule } from '@angular/material/chips';
 import {
   MatAutocompleteTrigger,
   MatAutocompleteModule,
 } from '@angular/material/autocomplete';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { getErrorMessage } from 'src/app/utils/getErrorMessage';
 
 @Component({
   selector: 'app-campaign-form',
@@ -82,6 +84,7 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
   config: MatSnackBarConfig = {
     duration: 5000,
   };
+  keywordUpdate$ = new Subject<string>();
 
   @ViewChild(MatAutocompleteTrigger) trigger: MatAutocompleteTrigger | null =
     null;
@@ -108,6 +111,9 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
         this.retrieveCampaign();
       }
     });
+    this.keywordUpdate$.subscribe((value: string) => {
+      this.updateFilteredKeywords(value);
+    });
   }
 
   ngOnDestroy(): void {
@@ -122,9 +128,7 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
       .getEmeraldAccountBalance()
       .pipe(
         catchError((error) => {
-          console.error('Error retrieving Emerald Account Balance', error);
-          this.errorMessage =
-            'Error retrieving Emerald Account Balance. Please try again.';
+          this.errorMessage = getErrorMessage(error);
           return EMPTY;
         })
       )
@@ -140,7 +144,7 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
     const maxCampaignFund = this.emeraldAccountBalance || 0;
     this.campaignForm = this.formBuilder.group({
       name: ['', Validators.required],
-      keywords: new FormControl([], Validators.required),
+      keywords: new FormControl([]),
       bidAmount: ['', [Validators.required, Validators.min(0)]],
       campaignFund: [
         '',
@@ -172,9 +176,16 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
 
   private filterKeywords(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return this.allKeywords.filter((keyword) =>
-      keyword.toLowerCase().includes(filterValue)
+    return this.allKeywords.filter(
+      (keyword) =>
+        keyword.toLowerCase().includes(filterValue) &&
+        !this.selectedKeywords.includes(keyword)
     );
+  }
+
+  private updateFilteredKeywords(value: string): void {
+    const filteredKeywords = this.filterKeywords(value);
+    this.filteredKeywords = of(filteredKeywords);
   }
 
   private retrieveCampaign() {
@@ -183,8 +194,7 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
       .getCampaignById(this.campaignId!)
       .pipe(
         catchError((error) => {
-          console.error('Error retrieving campaign:', error);
-          this.errorMessage = 'Error retrieving campaign. Please try again.';
+          this.errorMessage = getErrorMessage(error);
           return EMPTY;
         })
       )
@@ -215,34 +225,24 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  add(event: MatChipInputEvent): void {
-    const value = (event.value || '').trim();
-
-    if (value) {
-      this.selectedKeywords.push(value);
-    }
-
-    event.chipInput!.clear();
-
-    this.keywordCtrl.setValue(null);
-  }
-
   remove(keyword: string): void {
     const index = this.selectedKeywords.indexOf(keyword);
 
     if (index >= 0) {
       this.selectedKeywords.splice(index, 1);
     }
+
+    this.keywordUpdate$.next('');
   }
 
   selected(event: MatAutocompleteSelectedEvent): void {
     const value = event.option.value;
 
     this.selectedKeywords.push(value);
-
     this.keywordCtrl.setValue(null);
-
     this.trigger?.closePanel();
+
+    this.keywordUpdate$.next('');
   }
 
   onSubmit(): void {
@@ -251,50 +251,38 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
     }
 
     const campaign: Campaign = this.campaignForm?.value;
-    // const campaign: Campaign = { ...this.campaignForm?.value };
     campaign.keywords = this.selectedKeywords;
 
     if (this.isEditMode) {
       campaign.id = this.campaignId;
-      this.campaignService
-        .updateCampaign(campaign)
-        .pipe(
-          catchError((error) => {
-            console.error('Error updating campaign:', error);
-            this.errorMessage = 'Error updating campaign. Please try again.';
-            return EMPTY;
-          })
-        )
-        .subscribe((updatedCampaign) => {
-          this.updateEmeraldAccountBalance(updatedCampaign.campaignFund);
-          this.snackBar.open(
-            'Campaign updated successfully.',
-            'Close',
-            this.config
-          );
-          this.router.navigate(['/campaigns']);
-        });
+      this.processCampaign(
+        this.campaignService.updateCampaign(campaign),
+        'Campaign updated successfully.'
+      );
     } else {
-      this.campaignService
-        .createCampaign(campaign)
-        .pipe(
-          catchError((error) => {
-            console.error('Error creating campaign:', error);
-            this.errorMessage = 'Error creating campaign. Please try again.';
-
-            return EMPTY;
-          })
-        )
-        .subscribe((newCampaign) => {
-          this.updateEmeraldAccountBalance(newCampaign.campaignFund);
-          this.snackBar.open(
-            'Campaign created successfully.',
-            'Close',
-            this.config
-          );
-          this.router.navigate(['/campaigns']);
-        });
+      this.processCampaign(
+        this.campaignService.createCampaign(campaign),
+        'Campaign created successfully.'
+      );
     }
+  }
+
+  private processCampaign(
+    campaignObservable: Observable<Campaign>,
+    successMessage: string
+  ): void {
+    campaignObservable
+      .pipe(
+        catchError((error) => {
+          this.errorMessage = getErrorMessage(error);
+          return EMPTY;
+        })
+      )
+      .subscribe((campaign) => {
+        this.updateEmeraldAccountBalance(campaign.campaignFund);
+        this.snackBar.open(successMessage, 'Close', this.config);
+        this.router.navigate(['/campaigns']);
+      });
   }
 
   private updateEmeraldAccountBalance(
@@ -311,10 +299,8 @@ export class CampaignFormComponent implements OnInit, OnDestroy {
       .updateEmeraldAccountBalance(difference)
       .pipe(
         catchError((error) => {
-          console.error('Error updating Emerald Account Balance:', error);
-          this.errorMessage =
-            'Error updating Emerald Account Balance. Please try again.';
-          throw error;
+          this.errorMessage = getErrorMessage(error);
+          return EMPTY;
         })
       );
   }

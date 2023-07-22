@@ -46,7 +46,10 @@ export class CampaignService {
       return of(foundCampaign).pipe(delay(500));
     } else {
       return throwError(
-        () => new Error(`Campaign with ID ${campaignId} not found.`)
+        () =>
+          new Error(
+            `Error getting campaign. Campaign with ID ${campaignId} not found.`
+          )
       );
     }
   }
@@ -65,7 +68,10 @@ export class CampaignService {
       return of(campaign);
     }
     return throwError(
-      () => new Error(`Campaign with ID ${campaign.id} not found.`)
+      () =>
+        new Error(
+          `Error updating campaign. Campaign with ID ${campaign.id} not found.`
+        )
     );
   }
 
@@ -75,7 +81,9 @@ export class CampaignService {
       this.campaigns.splice(index, 1);
       return of(undefined);
     }
-    return throwError(() => `Campaign with ID ${id} not found.`);
+    return throwError(
+      () => `Error deleting campaign. Campaign with ID ${id} not found.`
+    );
   }
 
   private generateNewId(): number {

@@ -47,7 +47,7 @@
           [matAutocomplete]="auto"
           [matChipInputFor]="chipGrid"
           [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-          (matChipInputTokenEnd)="add($event)"
+          (input)="keywordUpdate$.next(keywordInput.value)"
         />
         <mat-autocomplete
           #auto="matAutocomplete"
@@ -100,12 +100,17 @@
         <mat-error
           *ngIf="
             campaignForm?.get('campaignFund')?.touched &&
-            !campaignForm?.get('campaignFund')?.invalid
+            campaignForm?.get('campaignFund')?.invalid &&
+            !campaignForm?.get('campaignFund')?.errors?.['max']
           "
         >
           Campaign Fund is required.
         </mat-error>
-        <mat-error *ngIf="campaignForm?.get('campaignFund')?.invalid">
+        <mat-error
+          *ngIf="
+            campaignForm?.get('campaignFund')?.errors?.['max']
+          "
+        >
           Campaign Fund is to big.
         </mat-error>
       </mat-form-field>
